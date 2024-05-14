@@ -20,27 +20,23 @@ export class NewItemComponent {
   public employees:Employee[]=[];
 
 
+  public lastNumber:number=0;
 
   constructor(private itemsService:ItemsService, private employeesService:EmployeesService){
+    
+    this.resetForm();
+
     this.itemForm=new FormGroup({
-      /*'inv_number': new FormControl(null,
+      'inv_number': new FormControl(this.lastNumber,
         {
+          validators:[
+            Validators.required //, this.validateInvNumber
+          ],
           asyncValidators:[
-            NewItemComponent.createUniqueInvNumberValidator(itemsService)
+            ItemsService.createUniqueInvNumberValidator(itemsService)
           ]
         }
-      )*/
-      /*'inv_number':new FormControl(null,{
-        validators:[Validators.required,Validators.minLength(3), this.validateInvNumber],
-        asyncValidators:NewItemComponent.createUniqueInvNumberValidator(itemsService)
-
-      }),*/
-      /*
-      'inv_number':new FormControl(null, 
-        [Validators.required,Validators.minLength(3), this.validateInvNumber],
-        [NewItemComponent.createUniqueInvNumberValidator(itemsService)]
-      ),*/
-      'inv_number':new FormControl(null,  [Validators.required,Validators.minLength(3), this.validateInvNumber]),
+      ),
       'name':new FormControl(null, [Validators.required, Validators.minLength(3)]),
       'type':new FormControl(null),
       'responsible_employee_id':new FormControl(null, Validators.required),
@@ -55,6 +51,13 @@ export class NewItemComponent {
     })
   }
 
+  private resetForm(){
+    this.itemsService.getLastInvNumber().subscribe((n)=>{
+      this.lastNumber=n;
+      (this.itemForm.get('inv_number') as FormControl).setValue(n);
+    });
+  }
+
   onSubmit(){
     console.log(this.itemForm.value);
     this.itemsService.addItem(this.itemForm.value).subscribe(()=>{
@@ -62,6 +65,7 @@ export class NewItemComponent {
       (this.itemForm.get('locations') as FormArray).controls=[
         new FormControl(null, Validators.required)
       ];
+      this.resetForm();
     })
     
   }
@@ -76,6 +80,9 @@ export class NewItemComponent {
       
     return {error:"Klaida"};
   }
+
+  
+   
 
 
   static createUniqueInvNumberValidator(itemsService:ItemsService){
@@ -109,6 +116,10 @@ export class NewItemComponent {
 
 
 }
+
+
+
+
 
 /*
 public inv_number:number|null=null;
